@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ToDoList</title>
+    <style>
+        *{
+            text-align:center;
+        }
+        #iput{
+            height: 30px; width: 800px;
+        }
+        li:hover{
+            background-color: #B8B8B8;
+        }
+        h4{
+            left:20px;
+        }
+        li input{
+            position:absolute;
+            top:2px;
+            left:10px;
+            width:22px;
+            height:22px;
+        }
+        p{
+            margin: 0;
+        }
+        li{
+            height:32px;
+            line-height:32px;
+            background: #fff;
+            position:relative;
+            box-shadow: 0 1px 2px ;
+        }
+        li button{
+            position:absolute;
+            top:10px;
+            right:5px;
+            border:6px  #FFF;
+            background:#CCC;
+            line-height:12px;
+            color:#FFF;
+        }
+
+    </style>
+</head>
+<body>
+<div id="head">
+    <h1>ToDoList</h1>
+    <input type="text" id="iput" name="title" placeholder="添加ToDo" />
+</div>
+<div id="content">
+    <h4 onclick="save()">正在进行 <span id="todocount"></span></h4>
+    <ol id="todolist">
+    </ol>
+    <h4>已经完成 <span id="donecount"></span></h4>
+    <ol id="donelist">
+    </ol>
+</div>
+<footer>
+    <button onclick="clearbutton(event)">清空</button>
+</footer>
+<script>
+
+    window.onload=load;
+    var iput = document.getElementById("iput");
+
+    //按下键盘即触发
+    iput.onkeydown=function(event){
+        var event=event||window.event;
+        //键码13为回车
+        if(event.keyCode==13) {
+            if (iput.value == "") {
+                alert("不能为空喔");
+            } else {
+                var data = loadData();
+                var todo = {"title": iput.value, "done": false};
+                data.push(todo);
+                saveData(data);
+                clearData();
+                load();
+            }
+        }
+    }
+
+    //回车后，清空输入框
+    function clearData(){
+        var iput = document.getElementById("iput");
+        iput.value = "";
+    }
+
+    //获取todo对象
+    function loadData(){
+        var collection=localStorage.getItem("todo");
+        if(collection!=null){
+            return JSON.parse(collection);
+        }
+        else return [];
+    }
+
+    //以数组data[]保存id：todolist、donelist内容
+    function saveSort(){
+        var todolist=document.getElementById("todolist");
+        var donelist=document.getElementById("donelist");
+        var ts=todolist.getElementsByTagName("p");
+        var ds=donelist.getElementsByTagName("p");
+        var data=[];
+        for(i=0;i<ts.length; i++){
+            var todo={"title":ts[i].innerHTML,"done":false};
+            data.unshift(todo);
+        }
+        for(i=0;i<ds.length; i++){
+            var todo={"title":ds[i].innerHTML,"done":true};
+            data.unshift(todo);
+        }
+        saveData(data);
+    }
+    function saveData(data){
+        localStorage.setItem("todo",JSON.stringify(data));
+    }
+
+    //数组splice删除第i项
+    function remove(i){
+        var data=loadData();
+        var todo=data.splice(i,1);
+        saveData(data);
+        load();
+    }
+
+    //input添加点击事件，调用updata函数，改变done属性
+    function update(i){
+        var data = loadData();
+        data[i].done=!data[i].done;
+        saveData(data);
+        load();
+    }
+
+    function load(){
+        var todolist=document.getElementById("todolist");
+        var donelist=document.getElementById("donelist");
+        var collection=localStorage.getItem("todo");
+        if(collection!=null){
+            var data=JSON.parse(collection);
+            var todoCount=0;
+            var doneCount=0;
+            var todoString="";
+            var doneString="";
+            for (var i = data.length - 1; i >= 0; i--) {
+                if(data[i].done){
+                    doneString+="<li><input type='checkbox' onchange='update("+i+")' checked='checked' />"
+                        +"<p>"+data[i].title+"</p>"
+                        +"<a href='javascript:remove("+i+")'>-</a></li>";
+                    doneCount++;
+                }
+                else{
+                    todoString+="<li><input type='checkbox' onchange='update("+i+")' />"
+                        +"<p >"+data[i].title+"</p>"
+                        +"<a href='javascript:remove("+i+")'>-</a></li>";
+                    todoCount++;
+                }
+            }
+            todocount.innerHTML=todoCount;
+            todolist.innerHTML=todoString;
+            donecount.innerHTML=doneCount;
+            donelist.innerHTML=doneString;
+        }
+        else{
+            todocount.innerHTML=0;
+            todolist.innerHTML="";
+            donecount.innerHTML=0;
+            donelist.innerHTML="";
+        }
+        saveSort();
+    }
+
+    //clearbutton先删除节点，再清空localStorage
+    function clearbutton(event) {
+
+        var todolist = document.getElementById("todolist");
+        for (var i = todolist.childNodes.length - 1; i >= 0; i--) {
+            todolist.removeChild(todolist.childNodes[i]);
+        }
+
+        var donelist = document.getElementById("donelist");
+        for (var j = donelist.childNodes.length - 1; j >= 0; j--) {
+            donelist.removeChild(donelist.childNodes[j]);
+        }
+        localStorage.clear();
+        load();
+    }
+
+
+</script>
+</body>
+</html>
